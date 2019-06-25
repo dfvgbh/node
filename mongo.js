@@ -1,13 +1,11 @@
 const MongoClient = require('mongodb').MongoClient;
-const MONGO_URL = "mongodb://localhost:27017/polyglot_ninja";
+const MONGO_URL = 'mongodb://localhost:27017';
 
-
-module.exports = function (app) {
-  MongoClient.connect(MONGO_URL)
+module.exports = (app) => {
+  MongoClient.connect(MONGO_URL, { useNewUrlParser: true })
     .then((connection) => {
-      app.people = connection.db('polyglot_ninja').collection('people');
-      console.log("Database connection established")
+      app.products = connection.db('shop').collection('products');
+      console.info('Database connection established');
     })
     .catch((err) => console.error(err))
-
 };

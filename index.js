@@ -11,66 +11,37 @@ require('./mongo')(app);
 app.use(async (ctx, next) => {
   ctx.set('Access-Control-Allow-Origin', '*');
   ctx.set('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  ctx.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   await next();
 });
 
 app.use(BodyParser());
 
-router.get('/todos', async (ctx) => {
-  ctx.body = [
-    {
-      id: 1,
-      text: 'Switch to Koa',
-      completed: true
-    }, {
-      id: 2,
-      text: '???',
-      completed: false
-    }, {
-      id: 3,
-      text: 'Profit',
-      completed: true
-    }, {
-      id: 4,
-      text: 'Apple',
-      completed: true
-    }, {
-      id: 5,
-      text: 'Peach',
-      completed: true
-    }, {
-      id: 6,
-      text: 'Avocado',
-      completed: false
-    }, {
-      id: 7,
-      text: 'Mango',
-      completed: true
-    }, {
-      id: 8,
-      text: 'Papaya',
-      completed: true
+router.get('/products', async (ctx) => {
+  const { from = 0, to = Number.POSITIVE_INFINITY } = ctx.request.query;
+  ctx.body = await ctx.app.products.find({
+    price: {
+      $gte: +from,
+      $lte: +to,
     }
-  ];
+  }).toArray();
   ctx.status = 200;
 });
 
-router.get('/people', async (ctx) => {
-  ctx.body = await ctx.app.people.find().toArray();
+router.post('/products', async (ctx) => {
+  ctx.body = await ctx.app.products.insert(ctx.request.body);
   ctx.status = 200;
 });
 
-router.post('/people', async (ctx) => {
-  ctx.body = await ctx.app.people.insert(ctx.request.body);
+router.get('/products/:id', async (ctx) => {
+  ctx.body = await ctx.app.products.findOne({ '_id': ObjectID(ctx.params.id) });
+  ctx.status = 200;
 });
 
-router.get('/people/:id', async (ctx) => {
-  ctx.body = await ctx.app.people.findOne({ '_id': ObjectID(ctx.params.id) });
-});
-
-router.delete('/people/:id', async (ctx) => {
-  let documentQuery = { '_id': ObjectID(ctx.params.id) }; 
-  ctx.body = await ctx.app.people.deleteOne(documentQuery);
+router.delete('/products/:id', async (ctx) => {
+  let documentQuery = { '_id': ObjectID(ctx.params.id) };
+  ctx.body = await ctx.app.products.deleteOne(documentQuery);
+  ctx.status = 200;
 });
 
 app.use(router.routes());
