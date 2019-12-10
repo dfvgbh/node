@@ -1,12 +1,13 @@
 const Koa = require('koa');
 const Router = require('koa-router');
-const Logger = require('koa-logger');
 const BodyParser = require('koa-bodyparser');
+const graphqlHTTP = require('koa-graphql');
+const schema = require('./schemas/root.schema');
 const { ObjectID } = require('mongodb');
 
 const app = new Koa();
 const router = new Router();
-require('./mongo')(app);
+require('./mongo').connect(app);
 
 app.use(async (ctx, next) => {
   ctx.set('Access-Control-Allow-Origin', '*');
@@ -43,6 +44,11 @@ router.delete('/products/:id', async (ctx) => {
   ctx.body = await ctx.app.products.deleteOne(documentQuery);
   ctx.status = 200;
 });
+
+router.all('/graphql', graphqlHTTP({
+  schema,
+  graphiql: true
+}));
 
 app.use(router.routes());
 // makes sure a 405 Method Not Allowed is sent
